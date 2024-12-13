@@ -58,7 +58,7 @@ topology:
         -c '  neighbor ROUTERS peer-group'
         -c '  neighbor ROUTERS remote-as external'
         -c '  neighbor SERVERS peer-group'
-        -c '  neighbor SERVERS remote-as external'
+        -c '  neighbor SERVERS remote-as 65010'
         -c '  neighbor net0 interface peer-group ROUTERS'
         -c '  neighbor 10.0.1.2 peer-group SERVERS'
         -c '  neighbor 10.0.2.2 peer-group SERVERS'
@@ -89,7 +89,7 @@ topology:
         -c '  neighbor ROUTERS peer-group'
         -c '  neighbor ROUTERS remote-as external'
         -c '  neighbor SERVERS peer-group'
-        -c '  neighbor SERVERS remote-as external'
+        -c '  neighbor SERVERS remote-as 65011'
         -c '  neighbor net0 interface peer-group ROUTERS'
         -c '  neighbor 10.0.3.2 peer-group SERVERS'
         -c '  neighbor 10.0.4.2 peer-group SERVERS'
@@ -97,42 +97,39 @@ topology:
         -c '    redistribute connected'
         -c '  exit-address-family'
         -c '!'
-    server0:
-      kind: linux
-      image: nicolaka/netshoot:latest
-      # Must use the container full name while https://github.com/srl-labs/containerlab/issues/1731 is not resolved
-      network-mode: container:clab-bgp-cplane-demo-control-plane
+    clab-bgp-cplane-demo:
+      kind: k8s-kind
+      startup-config: cluster.yaml
+      extras:
+        k8s_kind:
+          deploy:
+            wait: 0s
+    clab-bgp-cplane-demo-control-plane:
+      kind: ext-container
       exec:
       # Cilium currently doesn't support BGP Unnumbered
       - ip addr add 10.0.1.2/24 dev net0
       # Cilium currently doesn't support importing routes
       - ip route replace default via 10.0.1.1
-    server1:
-      kind: linux
-      image: nicolaka/netshoot:latest
-      network-mode: container:clab-bgp-cplane-demo-worker
+    clab-bgp-cplane-demo-worker:
+      kind: ext-container
       exec:
       - ip addr add 10.0.2.2/24 dev net0
       - ip route replace default via 10.0.2.1
-    server2:
-      kind: linux
-      image: nicolaka/netshoot:latest
-      network-mode: container:clab-bgp-cplane-demo-worker2
+    clab-bgp-cplane-demo-worker2:
+      kind: ext-container
       exec:
       - ip addr add 10.0.3.2/24 dev net0
       - ip route replace default via 10.0.3.1
-    server3:
-      kind: linux
-      image: nicolaka/netshoot:latest
-      network-mode: container:clab-bgp-cplane-demo-worker3
+    clab-bgp-cplane-demo-worker3:
+      kind: ext-container
       exec:
       - ip addr add 10.0.4.2/24 dev net0
       - ip route replace default via 10.0.4.1
   links:
   - endpoints: ["router0:net0", "tor0:net0"]
   - endpoints: ["router0:net1", "tor1:net0"]
-  - endpoints: ["tor0:net1", "server0:net0"]
-  - endpoints: ["tor0:net2", "server1:net0"]
-  - endpoints: ["tor1:net1", "server2:net0"]
-  - endpoints: ["tor1:net2", "server3:net0"]
-
+  - endpoints: ["tor0:net1", "clab-bgp-cplane-demo-control-plane:net0"]
+  - endpoints: ["tor0:net2", "clab-bgp-cplane-demo-worker:net0"]
+  - endpoints: ["tor1:net1", "clab-bgp-cplane-demo-worker2:net0"]
+  - endpoints: ["tor1:net2", "clab-bgp-cplane-demo-worker3:net0"]

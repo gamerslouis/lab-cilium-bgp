@@ -1,5 +1,7 @@
 # Lab Cilium BGP
 
+Update: Upgrade to Cilium 1.16.4 with new CiliumBGPClusterConfig and helm chart values.
+
 A simple reproduction of the lab presented [here](https://www.youtube.com/watch?v=AXTKS0WCXjE) to be able to test some complementary things.
 
 ## Pre-requisites

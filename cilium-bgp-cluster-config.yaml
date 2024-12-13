@@ -1,0 +1,64 @@
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPClusterConfig
+metadata:
+  name: rack0
+spec:
+  nodeSelector:
+    matchLabels:
+      rack: rack0
+  bgpInstances:
+  - name: "instance-65010"
+    localASN: 65010
+    peers:
+    - name: "peer-65010-tor0"
+      peerASN: 65010
+      peerAddress: 10.0.0.1
+      peerConfigRef:
+        name: "cilium-peer"
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPClusterConfig
+metadata:
+  name: rack1
+spec:
+  nodeSelector:
+    matchLabels:
+      rack: rack1
+  bgpInstances:
+  - name: "instance-65011"
+    localASN: 65011
+    peers:
+    - name: "peer-65011-tor1"
+      peerASN: 65011
+      peerAddress: 10.0.0.2
+      peerConfigRef:
+        name: "cilium-peer"
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPPeerConfig
+metadata:
+  name: cilium-peer
+spec:
+  timers:
+    holdTimeSeconds: 9
+    keepAliveTimeSeconds: 3
+  ebgpMultihop: 4
+  gracefulRestart:
+    enabled: true
+    restartTimeSeconds: 15
+  families:
+    - afi: ipv4
+      safi: unicast
+      advertisements:
+        matchLabels:
+          advertise: "bgp"
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPAdvertisement
+metadata:
+  name: bgp-advertisements
+  labels:
+    advertise: bgp
+spec:
+  advertisements:
+    - advertisementType: "PodCIDR"

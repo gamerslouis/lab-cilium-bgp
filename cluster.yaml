@@ -37,7 +37,3 @@ nodes:
       kubeletExtraArgs:
         node-ip: "10.0.4.2"
         node-labels: "rack=rack1"
-containerdConfigPatches:
-- |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5000"]
-    endpoint = ["http://kind-registry:5000"]
